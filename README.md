@@ -1,342 +1,117 @@
 # DRIFT: Directional Reasoning Injection for Fine-Tuning   MLLMs
 
 [![Paper](https://img.shields.io/badge/Paper-arXiv:{{ARXIV_ID}}-B31B1B.svg)]({{ARXIV_URL}})
-[![Project Page](https://img.shields.io/badge/Project%20Page-Live-0A84FF)]({{PROJECT_PAGE_URL}})
-[![Demo](https://img.shields.io/badge/Demo-Open%20in%20Colab-F9AB00?logo=googlecolab&logoColor=white)]({{COLAB_URL}})
-[![Model](https://img.shields.io/badge/Model-HuggingFace-ff9a00?logo=huggingface)]({{HF_REPO_OR_SPACE_URL}})
-[![Dataset](https://img.shields.io/badge/Dataset-Download-2b9348)]({{DATASET_URL}})
-[![License](https://img.shields.io/badge/License-{{LICENSE_SHORT}}-black.svg)](./LICENSE)
-[![Build](https://img.shields.io/github/actions/workflow/status/{{OWNER}}/{{REPO}}/ci.yml?logo=github)](https://github.com/{{OWNER}}/{{REPO}}/actions)
-[![Coverage](https://img.shields.io/codecov/c/github/{{OWNER}}/{{REPO}}?logo=codecov)](https://codecov.io/gh/{{OWNER}}/{{REPO}})
-[![Python](https://img.shields.io/badge/Python-{{PY_VERSION_RANGE}}-3776AB?logo=python)](#environment)
-[![CUDA](https://img.shields.io/badge/CUDA-{{CUDA_VERSION}}-76B900?logo=nvidia)](#environment)
-[![DOI](https://img.shields.io/badge/DOI-{{DOI}}-8A2BE2)]({{DOI_URL}})
+[![Project Page](https://img.shields.io/badge/Project%20Page-DRIFT-0A84FF)](https://github.com/WikiChao/DRIFT)
+[![Model](https://img.shields.io/badge/Model-HuggingFace-ff9a00?logo=huggingface)](https://huggingface.co/ChaoHuangCS/DRIFT-VL-7B)
+[![Dataset](https://img.shields.io/badge/Dataset-Download-2b9348)](https://huggingface.co/datasets/ChaoHuangCS/DRIFT-TL-Distill-4K)
+[![License](https://img.shields.io/badge/License-MIT-black.svg)](./LICENSE)
 
 <!-- Optional: hero figure -->
 <p align="center">
-  <img src="{{STATIC_OR_FIGURE_URL}}" alt="Overview figure" width="85%" />
+  <img src="asset/method.png" alt="Overview figure" width="85%" />
 </p>
 
 <p align="center">
   <b>DRIFT transfers reasoning from DeeSeekR1 into QwenVL through gradient guidance.</b>
 </p>
 
----
-
-## Table of Contents
-- [Abstract](#abstract)
-- [Highlights](#highlights)
-- [News](#news)
-- [TL;DR / Demo](#tldr--demo)
-- [Environment](#environment)
-- [Installation](#installation)
-- [Datasets](#datasets)
-- [Pretrained Models](#pretrained-models)
-- [Quick Start](#quick-start)
-- [Training](#training)
-- [Evaluation](#evaluation)
-- [Results](#results)
-- [Ablations](#ablations)
-- [Reproducibility Checklist](#reproducibility-checklist)
-- [Repository Structure](#repository-structure)
-- [Configuration](#configuration)
-- [Logging & Experiment Tracking](#logging--experiment-tracking)
-- [Export & Inference](#export--inference)
-- [Model Card](#model-card)
-- [Limitations & Ethics](#limitations--ethics)
-- [FAQ](#faq)
-- [Cite Us](#cite-us)
-- [Acknowledgements](#acknowledgements)
-- [License](#license)
-- [Maintainers & Contact](#maintainers--contact)
-- [Changelog](#changelog)
 
 ---
 
 ## Abstract
-Multimodal large language models (MLLMs) are rapidly advancing, yet their reasoning ability often lags behind that of strong text-only counterparts. Existing methods to bridge this gap rely on supervised fine-tuning over large-scale multimodal reasoning data or reinforcement learning, both of which are resource-intensive. A promising alternative is \textit{model merging}, which interpolates parameters between reasoning-enhanced LLMs and multimodal variants. However, our analysis shows that naive merging is not always a ``free lunch'': its effectiveness varies drastically across model families, with some (e.g., LLaVA, Idefics) benefiting while others (e.g., Qwen) suffer performance degradation. To address this, we propose Directional Reasoning Injection for Fine-Tuning (DRIFT) MLLMs, a lightweight method that transfers reasoning knowledge in the gradient space, without destabilizing multimodal alignment. DRIFT precomputes a reasoning prior as the parameter-space difference between reasoning and multimodal variants, then uses it to bias gradients during multimodal fine-tuning. This approach preserves the simplicity of standard supervised fine-tuning pipelines while enabling efficient reasoning transfer. Extensive experiments on multimodal reasoning benchmarks, including MathVista and MathVerse, demonstrate that DRIFT consistently improves reasoning performance over naive merging and supervised fine-tuning, while matching or surpassing training-heavy methods at a fraction of the cost. 
-
----
-
-## Highlights
-- Novelty: {{KEY_NOVEL_POINT_1}}
-- Performance: {{KEY_RESULT_OR_GAIN}}
-- Efficiency/Scalability: {{KEY_EFFICIENCY_POINT}}
-- Applications: {{KEY_APPLICATIONS}}
-- Code: {{KEY_ENGINEERING_OR_DESIGN_DECISIONS}}
+Multimodal large language models (MLLMs) are rapidly advancing, yet their reasoning ability often lags behind that of strong text-only counterparts. Existing methods to bridge this gap rely on supervised fine-tuning over large-scale multimodal reasoning data or reinforcement learning, both of which are resource-intensive. A promising alternative is \textit{model merging}, which interpolates parameters between reasoning-enhanced LLMs and multimodal variants. However, our analysis shows that naive merging is not always a "free lunch": its effectiveness varies drastically across model families, with some (e.g., LLaVA, Idefics) benefiting while others (e.g., Qwen) suffer performance degradation. To address this, we propose Directional Reasoning Injection for Fine-Tuning (DRIFT) MLLMs, a lightweight method that transfers reasoning knowledge in the gradient space, without destabilizing multimodal alignment. DRIFT precomputes a reasoning prior as the parameter-space difference between reasoning and multimodal variants, then uses it to bias gradients during multimodal fine-tuning. This approach preserves the simplicity of standard supervised fine-tuning pipelines while enabling efficient reasoning transfer. Extensive experiments on multimodal reasoning benchmarks, including MathVista and MathVerse, demonstrate that DRIFT consistently improves reasoning performance over naive merging and supervised fine-tuning, while matching or surpassing training-heavy methods at a fraction of the cost. 
 
 ---
 
 ## News
-- {{YYYY-MM-DD}}: {{MAJOR_ANNOUNCEMENT}}
-- {{YYYY-MM-DD}}: {{RELEASE_OR_UPDATE}}
-- {{YYYY-MM-DD}}: {{BENCHMARK_OR_AWARD}}
-
----
-
-## TL;DR / Demo
-- Colab: [Open Notebook]({{COLAB_URL}})
-- Hugging Face Space: [Live Demo]({{HF_SPACE_URL}})
-- Minimal example:
-```bash
-python -m {{PKG_NAME}}.infer --config configs/infer.yaml --input {{EXAMPLE_INPUT}}
-```
+- 2025-10-16 — Initial code release
 
 ---
 
 ## Environment
 
+DRIFT can be integrated into most LLM/VLM training stacks. This repository provides a reference implementation compatible with [LLaMA-Factory](https://github.com/hiyouga/LLaMA-Factory).
 
 - Conda:
 ```bash
-conda create -n {{ENV_NAME}} python={{PY_VERSION}} -y
-conda activate {{ENV_NAME}}
-pip install -e ".[dev]"  # or pip install -r requirements.txt
-```
-
----
-
-## Installation
-```bash
-git clone https://github.com/{{OWNER}}/{{REPO}}.git
-cd {{REPO}}
-pip install -e ".[all]"  # extras: [train,eval,docs]
-# optional: pre-commit for style
-pre-commit install
-```
-
----
-
-## Datasets
-- Primary dataset: [{{DATASET_NAME}}]({{DATASET_URL}})
-- Size: {{NUM_SAMPLES}} samples
-- License: {{DATA_LICENSE}}
-- Auto-download:
-```bash
-python -m {{PKG_NAME}}.data.prepare --dataset {{DATASET_NAME}} --root data/
-```
-- Manual:
-  - Place files under `data/{{DATASET_NAME}}/` as:
-```
-data/
-└── {{DATASET_NAME}}/
-    ├── train/...
-    ├── val/...
-    └── test/...
-```
-
----
-
-## Pretrained Models
-- Checkpoint (best val): [{{CKPT_NAME}}]({{CKPT_URL}}) ({{SIZE_MB}} MB)
-- Weights (HF): [{{HF_MODEL_ID}}]({{HF_MODEL_URL}})
-- Integrity:
-```bash
-sha256sum {{CHECKPOINT_FILENAME}}  # expected: {{SHA256}}
+# create and activate environment
+conda create -n drift python=3.12 -y
+conda activate drift
+cd LLaMA-Factory
+pip install -e ".[torch,metrics]" --no-build-isolation
 ```
 
 ---
 
 ## Quick Start
-- Run on a sample:
-```bash
-python -m {{PKG_NAME}}.infer \
-  --config configs/infer.yaml \
-  --input assets/examples/{{EXAMPLE_FILE}} \
-  --weights {{PATH_OR_URL_TO_WEIGHTS}} \
-  --out runs/infer/
+To train the model, you may need to first download the dataset locally:
+```python
+conda activate drift
+git lfs install
+cd LLaMA-Factory
+git clone https://huggingface.co/datasets/ChaoHuangCS/DRIFT-TL-Distill-4K
 ```
 
-- Programmatic:
+- Then run on an example script:
+```bash
+llamafactory-cli train examples/train_full_merge/qwen2_5vl_full_sft_merge.yaml
+```
+
+
+---
+
+## Datasets
+Our dataset is available on Hugging Face: [ChaoHuangCS/DRIFT-TL-Distill-4K](https://huggingface.co/datasets/ChaoHuangCS/DRIFT-TL-Distill-4K)
+
+Quick load:
 ```python
-from {{PKG_NAME}} import load_model
-model = load_model(weights="{{PATH_OR_URL_TO_WEIGHTS}}")
-out = model.predict("{{EXAMPLE_INPUT}}")
-print(out)
+from datasets import load_dataset
+ds = load_dataset("ChaoHuangCS/DRIFT-TL-Distill-4K")
+print(ds)
 ```
 
 ---
 
-## Training
-- Single GPU:
-```bash
-python -m {{PKG_NAME}}.train \
-  --config configs/train/{{EXP_NAME}}.yaml \
-  trainer.max_epochs={{EPOCHS}} \
-  data.root=data/{{DATASET_NAME}}
-```
+## Models
+Our model is available on Hugging Face: [ChaoHuangCS/DRIFT-VL-7B](https://huggingface.co/ChaoHuangCS/DRIFT-VL-7B)
 
-- Multi-GPU (DDP):
-```bash
-torchrun --nproc_per_node={{NUM_GPUS}} -m {{PKG_NAME}}.train \
-  --config configs/train/{{EXP_NAME}}.yaml
-```
-
-- Resume/finetune:
-```bash
-python -m {{PKG_NAME}}.train \
-  --config configs/train/{{EXP_NAME}}.yaml \
-  ckpt_path={{CKPT_PATH}} \
-  model.lr={{LR}}
+Quick load:
+```python
+from transformers import AutoProcessor, Qwen2_5_VLForConditionalGeneration
+proc = AutoProcessor.from_pretrained("ChaoHuangCS/DRIFT-VL-7B", trust_remote_code=True)
+model = Qwen2_5_VLForConditionalGeneration.from_pretrained("ChaoHuangCS/DRIFT-VL-7B", torch_dtype="auto", device_map="auto", trust_remote_code=True)
 ```
 
 ---
 
 ## Evaluation
-- Reproduce Table {{TABLE_NUMBER}} ({{BENCHMARK_NAME}}):
+We use VLMEvalKit for evaluation. Please follow their instructions: https://github.com/open-compass/VLMEvalKit
+
+Quick start:
 ```bash
-python -m {{PKG_NAME}}.eval \
-  --config configs/eval/{{EVAL_NAME}}.yaml \
-  --weights {{CKPT_PATH_OR_URL}} \
-  data.split=test
+# clone and install
+git clone https://github.com/open-compass/VLMEvalKit.git
+cd VLMEvalKit
+pip install -e .
+
+# then follow the repo's Quick Start to select datasets and model adapters
+# example (refer to VLMEvalKit docs for exact flags/model tags):
+# python run.py --model {{VLMEvalKit_MODEL_TAG}} --datasets {{DATASET_NAME}}
 ```
-- Expected metrics:
-```
-Accuracy: {{ACC}} ± {{STD}}
-F1: {{F1}}
-mAP@50: {{MAP50}}
-```
-- Submit to leaderboard: {{LINK_OR_INSTRUCTIONS}}
 
 ---
 
 ## Results
 - Main benchmark:
-| Method | Backbone | Dataset | Metric | Score | +/− |
-|-------:|:--------:|:-------:|:------:|:-----:|:---:|
-| {{OURS}} | {{BB}} | {{DATASET}} | {{METRIC}} | {{SCORE}} | {{STD}} |
-| {{BASELINE1}} | {{BB1}} | {{DATASET}} | {{METRIC}} | {{S1}} | {{}} |
-| {{BASELINE2}} | {{BB2}} | {{DATASET}} | {{METRIC}} | {{S2}} | {{}} |
+| **Model** | **MathVista** | **MathVision** | **MathVerse** | **WeMath** | **LogicVista** |
+|---|---:|---:|---:|---:|---:|
+| R1-Onevision-7B | 64.1 | 29.9 | 40.0 | – | 61.8 |
+| OpenVLThinker-7B | 65.3 | 23.0 | 38.1 | 35.2 | 44.5 |
+| R1-VL-7B | 63.5 | 24.7 | 40.0 | – | – |
+| X-REASONER (Liu et al., 2025) | 69.0 | 29.6 | – | – | – |
+| QwenVL2.5 (SFT) | 68.7 | 25.1 | 42.0 | 33.3 | 45.6 |
+| **DRIFT (Ours)** | **70.3**<sub><span style="color:green">+1.6</span></sub> | **26.5**<sub><span style="color:green">+1.5</span></sub> | **43.7**<sub><span style="color:green">+1.7</span></sub> | **36.9**<sub><span style="color:green">+3.6</span></sub> | **45.6**<sub><span style="color:green">+0.0</span></sub> |
 
-- Efficiency:
-| Model | Params | FLOPs | Throughput | Latency |
-|:-----:|-------:|------:|-----------:|--------:|
-| {{OURS}} | {{P}}M | {{F}}G | {{T}} samples/s | {{L}} ms |
-
-- Qualitative samples:
-<p align="center">
-  <img src="assets/figures/qualitative_1.png" width="90%"/>
-</p>
-
----
-
-## Reproducibility Checklist
-- Code and configs match paper: Yes/No
-- Random seeds fixed: `seed={{SEED}}`
-- Exact training/eval scripts provided
-- Environment pinned: `requirements.txt` / `environment.yml` / `Dockerfile`
-- External data and preprocessing steps documented
-- All results derive from included scripts or notebooks
-- Artifact DOI: {{DOI}} (Zenodo/ Figshare)
-
-To fully reproduce results:
-```bash
-bash scripts/reproduce_all.sh  # orchestrates data -> train -> eval -> tables
-```
-
----
-
-## Repository Structure
-```
-{{REPO}}/
-├─ {{PKG_NAME}}/
-│  ├─ data/              # dataset loaders and transforms
-│  ├─ models/            # architectures and layers
-│  ├─ lit/               # Lightning/Trainer modules (optional)
-│  ├─ utils/             # common helpers
-│  ├─ train.py           # CLI entry for training
-│  ├─ eval.py            # CLI entry for evaluation
-│  └─ infer.py           # CLI entry for inference
-├─ configs/              # YAML configs for exps/evals/ablations
-├─ scripts/              # bash utilities for reproduce, download, etc.
-├─ assets/               # figures, example inputs/outputs
-├─ tests/                # unit/integration tests
-├─ docker/               # Dockerfiles
-├─ requirements.txt      # or pyproject.toml
-├─ environment.yml       # conda env (optional)
-├─ CITATION.cff
-├─ LICENSE
-└─ README.md
-```
-
----
-
-## Configuration
-- Override any config via CLI using dot notation:
-```bash
-python -m {{PKG_NAME}}.train --config configs/train/{{EXP}}.yaml trainer.max_epochs=200 model.lr=3e-4
-```
-- Example config snippet:
-```yaml
-# configs/train/base.yaml
-seed: 42
-data:
-  name: {{DATASET_NAME}}
-  root: data/{{DATASET_NAME}}
-  batch_size: 64
-model:
-  name: {{MODEL_NAME}}
-  backbone: {{BACKBONE}}
-  lr: 3e-4
-trainer:
-  max_epochs: 100
-  precision: 16
-  devices: 1
-```
-
----
-
-## Logging & Experiment Tracking
-- Local logging to `runs/`.
-- Optional integrations:
-  - Weights & Biases:
-    ```bash
-    wandb login
-    python -m {{PKG_NAME}}.train logger=wandb logger.project={{WANDB_PROJECT}}
-    ```
-  - TensorBoard:
-    ```bash
-    tensorboard --logdir runs/
-    ```
-
----
-
-## Export & Inference
-- Export to ONNX/TorchScript:
-```bash
-python -m {{PKG_NAME}}.export --weights {{CKPT}} --format onnx --opset 17
-```
-- Batch inference on a folder:
-```bash
-python -m {{PKG_NAME}}.infer --input_dir assets/examples/ --out runs/infer/
-```
-
----
-
-## Model Card
-- Intended use: {{INTENDED_USE}}
-- Out-of-scope use: {{OUT_OF_SCOPE}}
-- Training data: {{DATASETS_AND_SOURCES}}
-- Evaluation data: {{EVAL_SETS}}
-- Metrics: {{METRICS}}
-- Ethical considerations / risks: see [Limitations & Ethics](#limitations--ethics)
-
----
-
-## Limitations & Ethics
-- Known failure modes: {{FAILURE_MODES}}
-- Bias and fairness: {{BIAS_CONCERNS}}
-- Safety mitigations: {{MITIGATIONS}}
-- Data licenses and usage constraints: {{DATA_LICENSE_NOTES}}
-
----
-
-## FAQ
-- Q: {{COMMON_QUESTION}}  
-  A: {{CONCISE_ANSWER}}
-
-- Q: {{ANOTHER_QUESTION}}  
-  A: {{CONCISE_ANSWER}}
 
 ---
 
@@ -353,31 +128,16 @@ If you find this work useful, please cite:
 }}
 ```
 
-Additionally, see [CITATION.cff](./CITATION.cff) for more formats.
-
 ---
 
 ## Acknowledgements
-- {{ADVISORS_COLLABS_FUNDING}}
-- This repo uses components from: {{UPSTREAM_REPOS_OR_LIBS}}
+- This project builds on [LLaMA-Factory](https://github.com/hiyouga/LLaMA-Factory). Thanks to the authors and contributors.
+- Evaluation leverages [VLMEvalKit](https://github.com/open-compass/VLMEvalKit).
 
 ---
 
 ## License
-This project is licensed under the {{LICENSE_LONG}}. See the [LICENSE](./LICENSE) file for details.
-
----
-
-## Maintainers & Contact
-- {{MAINTAINER_NAME}} ({{AFFILIATION}}) — {{EMAIL_OR_TWITTER}}
-- {{SECOND_MAINTAINER}} — {{CONTACT}}
-- Open an issue for questions, or email us directly.
-
----
-
-## Changelog
-- {{YYYY-MM-DD}} v{{VERSION}}: {{HIGHLIGHTS}}
-- {{YYYY-MM-DD}} v{{PREV_VERSION}}: {{HIGHLIGHTS}}
+This project is licensed under the MIT License. See the [LICENSE](./LICENSE) file for details.
 
 <!--
 Tips:

@@ -103,15 +103,15 @@ pip install -e .
 
 ## Results
 - Main benchmark:
+
 | **Model** | **MathVista** | **MathVision** | **MathVerse** | **WeMath** | **LogicVista** |
 |---|---:|---:|---:|---:|---:|
-| R1-Onevision-7B | 64.1 | 29.9 | 40.0 | – | 61.8 |
+| R1-Onevision-7B | 64.1 | 29.9 | 40.0 | — | 61.8 |
 | OpenVLThinker-7B | 65.3 | 23.0 | 38.1 | 35.2 | 44.5 |
-| R1-VL-7B | 63.5 | 24.7 | 40.0 | – | – |
-| X-REASONER (Liu et al., 2025) | 69.0 | 29.6 | – | – | – |
+| R1-VL-7B | 63.5 | 24.7 | 40.0 | — | — |
+| X-REASONER (Liu et al., 2025) | 69.0 | 29.6 | — | — | — |
 | QwenVL2.5 (SFT) | 68.7 | 25.1 | 42.0 | 33.3 | 45.6 |
-| **DRIFT (Ours)** | **70.3**<sub><span style="color:green">+1.6</span></sub> | **26.5**<sub><span style="color:green">+1.5</span></sub> | **43.7**<sub><span style="color:green">+1.7</span></sub> | **36.9**<sub><span style="color:green">+3.6</span></sub> | **45.6**<sub><span style="color:green">+0.0</span></sub> |
-
+| **DRIFT (Ours)** | **70.3 (+1.6)** | **26.5 (+1.5)** | **43.7 (+1.7)** | **36.9 (+3.6)** | **45.6 (+0.0)** |
 
 ---
 

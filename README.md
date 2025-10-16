@@ -12,7 +12,7 @@
 </p>
 
 <p align="center">
-  <b>DRIFT transfers reasoning from DeeSeekR1 into QwenVL through gradient guidance.</b>
+  <b>DRIFT transfers reasoning from DeepSeekR1 into QwenVL through gradient guidance.</b>
 </p>
 
 

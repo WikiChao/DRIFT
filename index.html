@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="description"
+        content="DRIFT: Directional Reasoning Injection for Fine-Tuning MLLMs">
+  <meta name="keywords" content="MLLM, multimodal LLM, reasoning, gradient guidance, model merging, QwenVL, DeepSeek-R1, DRIFT">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="DRIFT: Directional Reasoning Injection for Fine-Tuning MLLMs">
+  <meta name="twitter:description" content="DRIFT transfers reasoning from DeepSeek-R1 into QwenVL via gradient-space guidance, improving multimodal reasoning efficiently.">
+  <meta name="twitter:creator" content="@ChaoHuangCS">
+
+  <title>DRIFT: Directional Reasoning Injection for Fine-Tuning MLLMs</title>
+
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-1FWSVCGZTG"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+
+    function gtag() {
+      dataLayer.push(arguments);
+    }
+
+    gtag('js', new Date());
+
+    gtag('config', 'G-1FWSVCGZTG');
+  </script>
+
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro"
+        rel="stylesheet">
+
+  <link rel="stylesheet" href="./css/bulma.min.css">
+  <link rel="stylesheet" href="./css/bulma-carousel.min.css">
+  <link rel="stylesheet" href="./css/bulma-slider.min.css">
+  <link rel="stylesheet" href="./css/twentytwenty.css">
+  <link rel="stylesheet" href="./css/index.css">
+  <link rel="icon" href="./images/favicon.svg">
+
+  <script src="./js/jquery-3.2.1.min.js"></script>
+  <script src="./js/jquery.event.move.js"></script>
+  <script src="./js/jquery.twentytwenty.js"></script>
+  <script src="./js/bulma-carousel.min.js"></script>
+  <script src="./js/bulma-slider.min.js"></script>
+  <script src="./js/fontawesome.all.min.js"></script>
+
+  <!--MathJax-->
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']]
+      },
+      svg: {
+        fontCache: 'global'
+      }
+    };
+  </script>
+  <script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+
+
+<section class="hero">
+  <div class="hero-body">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column has-text-centered">
+          <h1 class="title is-1 publication-title">DRIFT: Directional Reasoning Injection for Fine-Tuning MLLMs</h1>
+          <div class="is-size-5 publication-authors">
+                <span class="author-block">
+                 <a href="https://wikichao.github.io/" target="_blank"><font color="#B082C9"><b>Chao Huang</b></font></a><sup class="ur-sup">1</sup>&emsp;
+                </span>
+
+                <span class="author-block">
+                 <a href="https://zhangaipi.github.io/" target="_blank"><font color="#B082C9"><b>Zeliang Zhang</b></font></a><sup class="ur-sup">1</sup>&emsp;
+                </span>
+
+                <span class="author-block">
+                  <a href="https://joellliu.github.io/" target="_blank"><font color="#B082C9"><b>Jiang Liu</b></font></a><sup class="amd-sup">2</sup>&emsp;
+                 </span>
+
+                  <span class="author-block">
+                 <a href="https://scholar.google.com/citations?user=XoY8DLwAAAAJ&hl=en" target="_blank"><font color="#B082C9"><b>Ximeng Sun</b></font></a><sup class="amd-sup">2</sup>&emsp;
+                </span>
+                 
+                 <span class="author-block">
+                  <a href="https://jialianwu.com/" target="_blank"><font color="#B082C9"><b>Jialian Wu</b></font></a><sup class="amd-sup">2</sup>&emsp;
+                 </span>
+                 
+                 <span class="author-block">
+                  <a href="https://www.xiaodongyu.me/" target="_blank"><font color="#B082C9"><b>Xiaodong Yu</b></font></a><sup class="amd-sup">2</sup>&emsp;
+                 </span>
+                 
+                 <span class="author-block">
+                  <a href="https://zewang95.github.io/" target="_blank"><font color="#B082C9"><b>Ze Wang</b></font></a><sup class="amd-sup">2</sup>&emsp;
+                 </span>
+                 
+                 <span class="author-block">
+                  <a href="https://www.cs.rochester.edu/~cxu22/" target="_blank"><font color="#B082C9"><b>Chenliang Xu</b></font></a><sup class="ur-sup">1</sup>&emsp;
+                 </span>
+                 
+
+                 <span class="author-block">
+                  <a href="https://scholar.google.com/citations?user=bX1YILcAAAAJ&hl=en" target="_blank"><font color="#B082C9"><b>Emad Barsoum</b></font></a><sup class="amd-sup">2</sup>&emsp;
+                 </span>
+                 
+                 <span class="author-block">
+                  <a href="https://zicliu.wixsite.com/mysite" target="_blank"><font color="#B082C9"><b>Zicheng Liu</b></font></a><sup class="amd-sup">2</sup>&emsp;
+                 </span>
+          </div>
+
+          <div class="is-size-5 publication-authors">
+                  <span class="author-block">
+                    <sup class="ur-sup">1</sup>University of Rochester&emsp;
+                    <sup class="amd-sup">2</sup>AMD Research&emsp;
+                  </span>
+          </div>
+
+          <div class="column has-text-centered">
+            <div class="publication-links">
+              <span class="link-block">
+                <a href="#" target="_blank" rel="noopener noreferrer"
+                   class="external-link button is-normal is-rounded is-dark" aria-disabled="true">
+                  <span class="icon">
+                      <i class="fas fa-file-pdf" style="color: orangered"></i>
+                  </span>
+                  <span>Paper (coming soon)</span>
+                </a>
+              </span>
+              <!-- Code Link. -->
+              <span class="link-block">
+                <a href="https://github.com/WikiChao/DRIFT" target="_blank" rel="noopener noreferrer"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fab fa-github"></i>
+                  </span>
+                  <span>Code</span>
+                </a>
+              </span>
+              <!-- Model Link. -->
+              <span class="link-block">
+                <a href="https://huggingface.co/ChaoHuangCS/DRIFT-VL-7B" target="_blank" rel="noopener noreferrer"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <p style="font-size:18px">🤗</p>
+                  </span>
+                  <span>Model</span>
+                </a>
+              </span>
+              <!-- Dataset Link. -->
+              <span class="link-block">
+                <a href="https://huggingface.co/datasets/ChaoHuangCS/DRIFT-TL-Distill-4K" target="_blank" rel="noopener noreferrer"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <p style="font-size:18px">🤗</p>
+                  </span>
+                  <span>Dataset</span>
+                </a>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="hero teaser">
+  <div class="container is-max-desktop">
+    <div class="hero-body">
+      <h2 class="subtitle has-text-centered">
+        <b>DRIFT</b> transfers reasoning from DeepSeek-R1 into QwenVL via gradient-space guidance,
+        improving multimodal reasoning without destabilizing alignment or expensive RL.
+      </h2>
+      <div style="padding: 10px;">
+        <img id="teaser" width="100%" src="./images/teaser.png" alt="DRIFT teaser figure."
+             style="border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);"/>
+      </div>
+      <div class="content has-text-left">
+        <ul class="is-size-5">
+          <li>Consistent gains over SFT and naive merging on MathVista, MathVerse, WeMath, and etc.</li>
+          <li>Lightweight: drop-in to standard SFT, no large-scale multi-image data needed.</li>
+          <li>Maintains multimodal alignment while injecting reasoning priors.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section hero is-light">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-five-sixths">
+        <h2 class="title is-3">Abstract</h2>
+        <div class="content has-text-justified">
+          <p>
+            Multimodal large language models (MLLMs) are rapidly advancing, yet their reasoning ability often lags behind that of strong text-only counterparts. Existing methods to bridge this gap rely on supervised fine-tuning over large-scale multimodal reasoning data or reinforcement learning, both of which are resource-intensive. A promising alternative is model merging, which interpolates parameters between reasoning-enhanced LLMs and multimodal variants. However, our analysis shows that naive merging is not always a "free lunch": its effectiveness varies drastically across model families, with some (e.g., LLaVA, Idefics) benefiting while others (e.g., Qwen) suffer performance degradation. To address this, we propose <span style="background-color: #f0f8ff; padding: 2px 4px; border-radius: 3px;"><strong>Directional Reasoning Injection for Fine-Tuning (DRIFT)</strong></span> MLLMs, a lightweight method that <span style="background-color: #f0f8ff; padding: 2px 4px; border-radius: 3px;"><strong>transfers reasoning knowledge in the gradient space</strong></span>, <span style="background-color: #f0f8ff; padding: 2px 4px; border-radius: 3px;"><strong>without destabilizing multimodal alignment</strong></span>. DRIFT precomputes a reasoning prior as the parameter-space difference between reasoning and multimodal variants, then uses it to bias gradients during multimodal fine-tuning. This approach preserves the simplicity of standard supervised fine-tuning pipelines while enabling efficient reasoning transfer. Extensive experiments on multimodal reasoning benchmarks, including MathVista and MathVerse, demonstrate that DRIFT consistently improves reasoning performance over naive merging and supervised fine-tuning, while <span style="background-color: #f0f8ff; padding: 2px 4px; border-radius: 3px;"><strong>matching or surpassing training-heavy methods at a fraction of the cost</strong></span>.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container is-max-desktop">
+    <!-- Method. -->
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Method</h2>
+        <div class="content has-text-justified">
+
+          <p>
+            DRIFT precomputes a reasoning prior as the parameter-space delta between a reasoning model and a multimodal model.
+            During multimodal SFT, gradients are guided toward this prior, injecting reasoning ability while preserving alignment.
+          </p>
+
+          <div class="has-text-centered">
+            <img id="method_train" width="100%" src="./images/method.png" alt="DRIFT method overview"/>
+          </div>
+
+          <p>
+            Concretely, let Δθ be the difference between a reasoning-enhanced LLM and its multimodal counterpart.
+            We bias the gradient updates in the direction of Δθ during fine-tuning on multimodal data, yielding
+            improved reasoning without destabilizing the vision-language interface.
+          </p>
+        </div>
+      </div>
+    </div>
+    <!--/ Method. -->
+  </div>
+</section>
+
+<section class="section hero is-light">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-five-sixths">
+        <h2 class="title is-3">Is Model Merging Always Beneficial?</h2>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered">
+      <div class="column is-full">
+        <p class="has-text-weight-semibold mb-3">
+          Effect of model merging on multimodal reasoning benchmarks.
+        </p>
+        <p class="mb-4">
+          Performance on MathVista, MathVision, and MathVerse for four MLLMs before and after merging with their text-only reasoning experts.
+          Scores include relative change (rel.) versus the base model.
+        </p>
+        <div class="table-container">
+          <table class="table is-fullwidth is-striped is-hoverable is-bordered">
+            <thead>
+              <tr>
+                <th rowspan="2">Benchmark</th>
+                <th colspan="3">LLaVA-Next-LLaMA3-8B</th>
+                <th colspan="3">Idefics-8B</th>
+                <th colspan="3">Qwen2-VL-7B</th>
+                <th colspan="3">Qwen2.5-VL-7B</th>
+              </tr>
+              <tr>
+                <th>Base</th><th>+Dart-Uniform</th><th>rel.</th>
+                <th>Base</th><th>+MetaMath</th><th>rel.</th>
+                <th>Base</th><th>+Qwen2-Math</th><th>rel.</th>
+                <th>Base</th><th>+DeepSeek-R1</th><th>rel.</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>MathVista</td>
+                <td>37.4</td><td>38.2</td><td><span style="color:#1a7f37;font-weight:600;">+0.8</span></td>
+                <td>51.8</td><td>53.2</td><td><span style="color:#1a7f37;font-weight:600;">+1.4</span></td>
+                <td>61.2</td><td>60.2</td><td><span style="color:#d73a49;font-weight:600;">-1.0</span></td>
+                <td>67.9</td><td>65.8</td><td><span style="color:#d73a49;font-weight:600;">-2.1</span></td>
+              </tr>
+              <tr>
+                <td>MathVision</td>
+                <td>13.8</td><td>15.8</td><td><span style="color:#1a7f37;font-weight:600;">+2.0</span></td>
+                <td>17.1</td><td>11.8</td><td><span style="color:#d73a49;font-weight:600;">-5.3</span></td>
+                <td>21.1</td><td>21.7</td><td><span style="color:#1a7f37;font-weight:600;">+0.6</span></td>
+                <td>25.0</td><td>22.7</td><td><span style="color:#d73a49;font-weight:600;">-2.3</span></td>
+              </tr>
+              <tr>
+                <td>MathVerse</td>
+                <td>16.0</td><td>17.4</td><td><span style="color:#1a7f37;font-weight:600;">+1.4</span></td>
+                <td>11.0</td><td>12.4</td><td><span style="color:#1a7f37;font-weight:600;">+1.4</span></td>
+                <td>26.9</td><td>26.7</td><td><span style="color:#d73a49;font-weight:600;">-0.2</span></td>
+                <td>41.4</td><td>33.2</td><td><span style="color:#d73a49;font-weight:600;">-8.2</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <!-- optional: small footnote -->
+        <p class="is-size-7 has-text-grey mt-2">
+          rel. values denote absolute score differences relative to the Base model.
+        </p>
+        <br>
+        <p class="has-text-weight-semibold mb-3">
+          Layer/Module-wise analysis of model merging pairs
+        </p>
+        <p class="mb-4">
+          We compare LLaVA-Next-8B vs. Dart-Uniform, Idefics-8B vs. MetaMath, Qwen2-VL-7B vs. Qwen2-Math-7B, and Qwen2.5-VL-7B vs. DeepSeek-R1-Qwen-7B. Top-Left: per-layer L2 norm differences. Bottom-Left: per-layer cosine similarity. Top-Right: average L2 norm differences for FFN and normalization layers. Bottom-Right: average L2 norm differences for attention projections (Q/K/V/O).
+        </p>
+        <div class="has-text-centered">
+          <figure class="image">
+            <img id="method_train" width="100%" src="./images/merging_motivation.png" alt="Layer/module-wise analysis of model merging pairs across benchmarks."/>
+          </figure>
+        </div>
+
+
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<section class="section hero is-light">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-five-sixths">
+        <h2 class="title is-3">DRIFT Surpasses Naive Merging</h2>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered">
+      <div class="column is-full">
+        <p class="has-text-weight-semibold mb-3">
+          Evaluation results on multimodal reasoning benchmarks.
+        </p>
+        <p class="mb-4">
+          We compare our gradient-based merging approach with standard parameter-space merging baselines.
+          Results are reported on MathVista, MathVision, MathVerse, WeMath (strict/loose), and LogicVista.
+          Best results are in <strong>bold</strong>. Improvements are reported relative to Baseline.
+        </p>
+        <div class="table-container">
+          <table class="table is-fullwidth is-striped is-hoverable is-bordered">
+            <thead>
+              <tr>
+                <th>Model</th>
+                <th>MathVista</th>
+                <th>MathVision</th>
+                <th>MathVerse</th>
+                <th>WeMath (strict)</th>
+                <th>WeMath (loose)</th>
+                <th>LogicVista</th>
+                <th>Avg.</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Qwen2.5-VL-7B-Instruct</td>
+                <td>67.9</td>
+                <td>25.0</td>
+                <td>41.4</td>
+                <td>34.3</td>
+                <td>52.8</td>
+                <td>46.7</td>
+                <td>44.7</td>
+              </tr>
+              <tr style="background:#f5f5f5;">
+                <td colspan="8"><em>Parameter merging with DeepSeekR1-Qwen-Distill-7B</em></td>
+              </tr>
+              <tr style="background:#f5f5f5;">
+                <td>Task Arithmetic</td>
+                <td>65.8<sub><span style="color:#d73a49;">-2.1</span></sub></td>
+                <td>22.7<sub><span style="color:#d73a49;">-2.3</span></sub></td>
+                <td>33.2<sub><span style="color:#d73a49;">-8.2</span></sub></td>
+                <td>30.1<sub><span style="color:#d73a49;">-4.2</span></sub></td>
+                <td>51.2<sub><span style="color:#d73a49;">-1.6</span></sub></td>
+                <td>42.0<sub><span style="color:#d73a49;">-4.7</span></sub></td>
+                <td>40.8<sub><span style="color:#d73a49;">-3.9</span></sub></td>
+              </tr>
+              <tr style="background:#f5f5f5;">
+                <td>Layer Swap</td>
+                <td>63.6<sub><span style="color:#d73a49;">-4.3</span></sub></td>
+                <td>22.9<sub><span style="color:#d73a49;">-2.1</span></sub></td>
+                <td>37.9<sub><span style="color:#d73a49;">-3.5</span></sub></td>
+                <td>32.1<sub><span style="color:#d73a49;">-2.2</span></sub></td>
+                <td>50.1<sub><span style="color:#d73a49;">-2.7</span></sub></td>
+                <td>35.1<sub><span style="color:#d73a49;">-11.6</span></sub></td>
+                <td>40.3<sub><span style="color:#d73a49;">-4.4</span></sub></td>
+              </tr>
+              <tr style="background:#f5f5f5;">
+                <td>TIES</td>
+                <td>63.6<sub><span style="color:#d73a49;">-4.3</span></sub></td>
+                <td>23.1<sub><span style="color:#d73a49;">-1.9</span></sub></td>
+                <td>39.5<sub><span style="color:#d73a49;">-1.9</span></sub></td>
+                <td>33.4<sub><span style="color:#d73a49;">-0.9</span></sub></td>
+                <td>51.7<sub><span style="color:#d73a49;">-1.1</span></sub></td>
+                <td>42.1<sub><span style="color:#d73a49;">-4.6</span></sub></td>
+                <td>42.2<sub><span style="color:#d73a49;">-2.5</span></sub></td>
+              </tr>
+              <tr style="background:#f5f5f5;">
+                <td>DARE-TIES</td>
+                <td>66.3<sub><span style="color:#d73a49;">-1.6</span></sub></td>
+                <td>23.6<sub><span style="color:#d73a49;">-1.4</span></sub></td>
+                <td>38.3<sub><span style="color:#d73a49;">-3.1</span></sub></td>
+                <td>33.7<sub><span style="color:#d73a49;">-0.6</span></sub></td>
+                <td>52.6<sub><span style="color:#d73a49;">-0.2</span></sub></td>
+                <td>42.0<sub><span style="color:#d73a49;">-4.7</span></sub></td>
+                <td>42.8<sub><span style="color:#d73a49;">-1.9</span></sub></td>
+              </tr>
+              <tr style="background:#f5f5f5;">
+                <td>DARE-Linear</td>
+                <td>66.0<sub><span style="color:#d73a49;">-1.9</span></sub></td>
+                <td>22.3<sub><span style="color:#d73a49;">-2.7</span></sub></td>
+                <td>35.5<sub><span style="color:#d73a49;">-5.9</span></sub></td>
+                <td>30.8<sub><span style="color:#d73a49;">-3.5</span></sub></td>
+                <td>51.2<sub><span style="color:#d73a49;">-1.6</span></sub></td>
+                <td>42.5<sub><span style="color:#d73a49;">-4.2</span></sub></td>
+                <td>41.4<sub><span style="color:#d73a49;">-3.3</span></sub></td>
+              </tr>
+              <tr>
+                <td colspan="8"><em>Reasoning Injection from DeepSeekR1-Qwen-Distill-7B</em></td>
+              </tr>
+              <tr>
+                <td><strong>DRIFT (Ours)</strong></td>
+                <td><strong>70.3</strong><sub><span style="color:#1a7f37;">+2.4</span></sub></td>
+                <td><strong>26.5</strong><sub><span style="color:#1a7f37;">+1.5</span></sub></td>
+                <td><strong>43.7</strong><sub><span style="color:#1a7f37;">+2.3</span></sub></td>
+                <td><strong>36.9</strong><sub><span style="color:#1a7f37;">+2.6</span></sub></td>
+                <td><strong>59.2</strong><sub><span style="color:#1a7f37;">+6.4</span></sub></td>
+                <td><strong>45.6</strong><sub><span style="color:#d73a49;">-1.1</span></sub></td>
+                <td><strong>47.0</strong><sub><span style="color:#1a7f37;">+2.3</span></sub></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="is-size-7 has-text-grey mt-2">
+          Subscript values denote absolute differences relative to the Baseline.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section hero is-light">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-five-sixths">
+        <h2 class="title is-3">DRIFT Surpasses SFT</h2>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered">
+      <div class="column is-full">
+        <p class="has-text-weight-semibold mt-6 mb-3">
+          Evaluation results on visual reasoning benchmarks.
+        </p>
+        <p class="mb-4">
+          We report performance on MathVista, MathVision, MathVerse, WeMath (strict), and LogicVista across open-source models and reasoning fine-tuning methods.
+          Our DRIFT results are bold, with improvements relative to our SFT baseline shown as green subscripts.
+        </p>
+        <div class="table-container">
+          <table class="table is-fullwidth is-striped is-hoverable is-bordered">
+            <thead>
+              <tr>
+                <th>Model</th>
+                <th>MathVista</th>
+                <th>MathVision</th>
+                <th>MathVerse</th>
+                <th>WeMath</th>
+                <th>LogicVista</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td colspan="6"><strong><em>Open-source Models</em></strong></td>
+              </tr>
+              <tr>
+                <td>LLaVA-OneVision-7B</td>
+                <td>62.6</td><td>17.6</td><td>17.6</td><td>17.7</td><td>32.0</td>
+              </tr>
+              <tr>
+                <td>InternLM-XComposer2.5</td>
+                <td>64.0</td><td>17.8</td><td>16.2</td><td>14.1</td><td>34.7</td>
+              </tr>
+              <tr>
+                <td>InternVL3-8B</td>
+                <td>70.5</td><td>28.6</td><td>33.9</td><td>37.5</td><td>43.6</td>
+              </tr>
+              <tr>
+                <td>InternVL2.5-8B</td>
+                <td>64.5</td><td>17.0</td><td>22.8</td><td>23.5</td><td>36.0</td>
+              </tr>
+              <tr>
+                <td>InternVL2-8B</td>
+                <td>58.3</td><td>20.0</td><td>20.4</td><td>20.2</td><td>33.6</td>
+              </tr>
+              <tr>
+                <td>QvQ-72B-Preview</td>
+                <td>70.3</td><td>34.9</td><td>48.2</td><td>39.0</td><td>58.2</td>
+              </tr>
+              <tr>
+                <td>Kimi-VL-16B</td>
+                <td>66.0</td><td>21.8</td><td>34.1</td><td>32.3</td><td>42.7</td>
+              </tr>
+              <tr>
+                <td>Qwen2-VL-7B</td>
+                <td>61.6</td><td>19.2</td><td>25.4</td><td>22.3</td><td>33.3</td>
+              </tr>
+              <tr>
+                <td>Qwen2.5-VL-7B<sup>†</sup></td>
+                <td>67.9</td><td>25.0</td><td>41.4</td><td>34.3</td><td>46.7</td>
+              </tr>
+
+              <tr>
+                <td colspan="6"><strong><em>Reasoning Fine-tuning Methods</em></strong></td>
+              </tr>
+              <tr>
+                <td>R1-Onevision-7B</td>
+                <td>64.1</td><td>29.9</td><td>40.0</td><td>—</td><td>61.8</td>
+              </tr>
+              <tr>
+                <td>OpenVLThinker-7B</td>
+                <td>65.3</td><td>23.0</td><td>38.1</td><td>35.2</td><td>44.5</td>
+              </tr>
+              <tr>
+                <td>R1-VL-7B</td>
+                <td>63.5</td><td>24.7</td><td>40.0</td><td>—</td><td>—</td>
+              </tr>
+              <tr>
+                <td>X-REASONER</td>
+                <td>69.0</td><td>29.6</td><td>—</td><td>—</td><td>—</td>
+              </tr>
+
+              <tr>
+                <td>Ours (SFT)</td>
+                <td>68.7</td><td>25.1</td><td>42.0</td><td>33.3</td><td>45.6</td>
+              </tr>
+              <tr>
+                <td><strong>DRIFT (Ours)</strong></td>
+                <td><strong>70.3</strong><sub><span style="color:#1a7f37;">+1.6</span></sub></td>
+                <td><strong>26.5</strong><sub><span style="color:#1a7f37;">+1.5</span></sub></td>
+                <td><strong>43.7</strong><sub><span style="color:#1a7f37;">+1.7</span></sub></td>
+                <td><strong>36.9</strong><sub><span style="color:#1a7f37;">+3.6</span></sub></td>
+                <td><strong>45.6</strong><sub><span style="color:#1a7f37;">+0.0</span></sub></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="is-size-7 has-text-grey mt-2">
+          † indicates results reproduced by ourselves. Subscripts show improvements over our SFT baseline.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- <section class="section" id="BibTeX">
+  <div class="container is-max-desktop content">
+    <h2 class="title">Citation</h2>
+    <pre class="selectable"><code>
+}</code></pre>
+  </div>
+</section> -->
+
+<footer class="footer pt-4 pb-0">
+  <div class="container">
+    <div class="columns is-centered">
+      <div class="column is-8">
+        <div class="content">
+          <p>
+            Website template based on
+            <a href="https://github.com/nerfies/nerfies.github.io">
+              Nerfies
+            </a>
+            and licensed under
+            <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">
+              CC-BY-SA-4.0
+            </a>.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
+
+
